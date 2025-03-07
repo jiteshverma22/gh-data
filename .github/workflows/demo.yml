@@ -1,4 +1,4 @@
-name: Events Demo 1
+name: Deploy Website
 on:
   push:
     branches:
@@ -9,56 +9,36 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
       - name: Lint code
         run: npm run lint
-      - name: Test code
+      - name: Test the code
         run: npm run test
   build:
     needs: test
     runs-on: ubuntu-latest
-    outputs:
-      script-file: ${{ steps.publish.outputs.script-file }}
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
-      - name: Build the website
+      - name: Build the code
         run: npm run build
-      - name: Piblish JS filename
-        id: publish
-        run: find dist/assets/*.js -type f -execdir echo 'script-file={}' >> $GITHUB_OUTPUT ';'
-      - name: Uploads artifacts
+      - name: Publish build
         uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: dist
-          # path: |
-          #   dist
-          #   package.json
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Get build artifacts
+      - name: Get build artifact
         uses: actions/download-artifact@v4
         with:
           name: dist-files
-      - name: Output contents
+      - name: Out files
         run: ls
-      - name: Output filename
-        run: echo "${{ needs.build.outputs.script-file }}"
       - name: Deploy
-        run: echo "Deploying ..."
+        run: echo "deploying..."
