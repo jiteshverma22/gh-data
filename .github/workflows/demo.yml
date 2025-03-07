@@ -18,6 +18,8 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      script-file: ${{ steps.publish.ouputs.newly-gen-file }}
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -25,6 +27,9 @@ jobs:
         run: npm ci
       - name: Build the code
         run: npm run build
+      - name: Publish JS file name
+        id: publish
+        run: find ./dist/assets/*.js -type f  -execdir echo 'newly-gen-file={}' >> $GITHUB_OUTPUT ';'
       - name: Publish build
         uses: actions/upload-artifact@v4
         with:
@@ -38,7 +43,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist-files
-      - name: Out files
-        run: ls
+      - name: Out filesfilename
+        run: echo "${{ needs.build.outputs.script-file }}"
       - name: Deploy
         run: echo "deploying..."
